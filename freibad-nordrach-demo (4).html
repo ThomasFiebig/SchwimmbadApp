@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0B5563">
+<title>Freibad Nordrach – App-Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0C2429; --ink-soft:#52696F; --bg:#EAF4F5; --surface:#FFFFFF;
+    --surface-2:#F2FAFB; --line:#D9E8EA;
+    --water-deep:#0B5563; --water:#0F86A0; --water-bright:#34C6E0; --aqua:#9BE0E8;
+    --sun:#F4A24C; --sun-deep:#DE7E26; --good:#1F9E72;
+    --shadow:0 10px 30px -12px rgba(11,85,99,.28);
+    --shadow-sm:0 4px 14px -8px rgba(11,85,99,.30);
+    --r:18px;
+    --display:"Bricolage Grotesque",system-ui,sans-serif;
+    --ui:"Inter",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--ui); color:var(--ink); background:#cfe3e6;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    display:flex; align-items:center; justify-content:center; min-height:100dvh;
+    background:
+      radial-gradient(1200px 600px at 50% -10%, #e9f5f6 0%, #cfe3e6 55%, #bcd6da 100%);
+  }
+  /* ---------- phone shell (desktop) ---------- */
+  .phone{
+    position:relative; width:100%; max-width:412px; height:100dvh; max-height:880px;
+    background:var(--bg); overflow:hidden; display:flex; flex-direction:column;
+    box-shadow:0 40px 80px -30px rgba(8,50,58,.55), 0 0 0 1px rgba(255,255,255,.4) inset;
+  }
+  @media (min-width:480px){ .phone{ border-radius:42px; border:10px solid #0c2a30; height:88dvh; } }
+  @media (max-width:479px){ body{background:var(--bg)} .phone{max-height:none} }
+
+  /* ---------- top bar ---------- */
+  .appbar{
+    flex:0 0 auto; padding:calc(env(safe-area-inset-top,0px) + 14px) 18px 12px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:var(--bg); z-index:5;
+  }
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand-mark{
+    width:34px;height:34px;border-radius:11px;flex:0 0 auto;
+    background:linear-gradient(150deg,var(--water-bright),var(--water) 60%,var(--water-deep));
+    box-shadow:var(--shadow-sm); position:relative;
+  }
+  .brand-mark::after{content:"";position:absolute;inset:0;border-radius:11px;
+    background:radial-gradient(8px 6px at 30% 30%,rgba(255,255,255,.85),transparent 60%)}
+  .brand-name{font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:-.01em;line-height:1}
+  .brand-sub{font-size:11px;color:var(--ink-soft);margin-top:2px;letter-spacing:.01em}
+  .status-pill{
+    display:inline-flex;align-items:center;gap:6px;background:var(--surface);
+    border:1px solid var(--line); padding:7px 11px;border-radius:999px;font-size:12px;font-weight:600;
+    box-shadow:var(--shadow-sm); white-space:nowrap;
+  }
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px rgba(31,158,114,.18)}
+
+  /* ---------- demo banner ---------- */
+  .demo-banner{
+    margin:0 14px 4px; background:#0c2a30; color:#dff3f4; border-radius:13px;
+    padding:9px 12px; font-size:11.5px; display:flex; align-items:center; gap:8px; justify-content:space-between;
+  }
+  .demo-banner b{color:#fff;font-weight:600}
+  .demo-banner button{background:rgba(255,255,255,.14);border:0;color:#fff;border-radius:8px;
+    width:22px;height:22px;font-size:14px;cursor:pointer;flex:0 0 auto}
+
+  /* ---------- scroll area ---------- */
+  .screen{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 14px 96px}
+  .screen::-webkit-scrollbar{width:0}
+  .view{display:none;animation:fade .35s ease both}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--water);margin:18px 2px 9px}
+  .eyebrow:first-child{margin-top:6px}
+
+  /* ---------- HERO water ---------- */
+  .hero{
+    position:relative;border-radius:24px;overflow:hidden;color:#fff;padding:22px 20px 20px;
+    background:linear-gradient(160deg,#0b5563 0%,#0f86a0 48%,#1aa6c4 100%);
+    box-shadow:var(--shadow); isolation:isolate;
+  }
+  .hero .caustics{position:absolute;inset:-40%;z-index:-1;opacity:.5;mix-blend-mode:screen;
+    background:
+      radial-gradient(40% 30% at 20% 30%,rgba(255,255,255,.5),transparent 60%),
+      radial-gradient(35% 25% at 75% 25%,rgba(255,255,255,.4),transparent 60%),
+      radial-gradient(45% 30% at 55% 70%,rgba(180,255,255,.45),transparent 60%);
+    animation:drift 9s ease-in-out infinite alternate}
+  @keyframes drift{from{transform:translate(-3%,-2%) scale(1)}to{transform:translate(4%,3%) scale(1.08)}}
+  .hero-top{display:flex;justify-content:space-between;align-items:baseline}
+  .hero-label{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+  .hero-date{font-size:12px;opacity:.8}
+  .temp{font-family:var(--display);font-weight:800;font-size:74px;line-height:.92;letter-spacing:-.03em;margin-top:6px;font-feature-settings:"tnum" 1}
+  .temp span{font-size:30px;vertical-align:top;font-weight:700;opacity:.92}
+  .hero-temps{display:flex;align-items:flex-end;gap:13px;margin-top:8px}
+  .wt{flex:1;min-width:0}
+  .wt-l{font-size:12px;font-weight:600;opacity:.85;margin-bottom:3px;white-space:nowrap}
+  .wt-v{font-family:var(--display);font-weight:800;font-size:46px;line-height:.9;letter-spacing:-.03em;font-feature-settings:"tnum" 1}
+  .wt-v span{font-size:22px;vertical-align:top;font-weight:700;opacity:.9}
+  .wt-div{width:1px;align-self:stretch;background:rgba(255,255,255,.25);margin:4px 0}
+  .hero-meta{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap}
+  .hero-chip{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:500}
+  .hero-chip .ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:rgba(255,255,255,.16);font-size:14px}
+
+  /* ---------- occupancy gauge ---------- */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm)}
+  .occ{display:flex;gap:16px;align-items:stretch;padding:16px}
+  .gauge{position:relative;width:62px;flex:0 0 auto;border-radius:14px;overflow:hidden;
+    background:#e7f3f5;border:1px solid var(--line)}
+  .gauge .fill{position:absolute;left:0;right:0;bottom:0;
+    background:linear-gradient(180deg,#34c6e0,#0f86a0);transition:height 1.1s cubic-bezier(.22,1,.36,1)}
+  .gauge .wave{position:absolute;left:-50%;width:200%;height:14px;top:-9px;
+    background:radial-gradient(circle at 50% 100%,#34c6e0 38%,transparent 39%) repeat-x;
+    background-size:22px 22px;animation:wave 3.2s linear infinite}
+  @keyframes wave{from{transform:translateX(0)}to{transform:translateX(-22px)}}
+  .occ-body{flex:1;display:flex;flex-direction:column;justify-content:center}
+  .occ-head{display:flex;align-items:baseline;gap:8px}
+  .occ-num{font-family:var(--display);font-weight:800;font-size:40px;line-height:1;letter-spacing:-.02em;font-feature-settings:"tnum" 1}
+  .occ-unit{font-size:13px;color:var(--ink-soft);font-weight:500}
+  .occ-label{font-size:13px;color:var(--ink-soft);margin-top:3px}
+  .occ-tag{display:inline-flex;align-self:flex-start;margin-top:9px;font-size:12px;font-weight:600;
+    padding:5px 10px;border-radius:999px;background:rgba(31,158,114,.12);color:var(--good)}
+
+  /* ---------- peak hours ---------- */
+  .peak{padding:16px}
+  .peak h3{font-size:13.5px;font-weight:600;margin-bottom:2px}
+  .peak .hint{font-size:12px;color:var(--ink-soft);margin-bottom:14px}
+  .bars{display:flex;align-items:flex-end;gap:5px;height:62px}
+  .bars .b{flex:1;background:#dff0f2;border-radius:5px 5px 3px 3px;position:relative;transition:.3s}
+  .bars .b.now{background:linear-gradient(180deg,var(--sun),var(--sun-deep))}
+  .bars .b.now::after{content:"jetzt";position:absolute;top:-17px;left:50%;transform:translateX(-50%);
+    font-size:10px;font-weight:700;color:var(--sun-deep);white-space:nowrap}
+  .axis{display:flex;justify-content:space-between;margin-top:8px;font-size:10.5px;color:var(--ink-soft)}
+
+  /* ---------- quick actions ---------- */
+  .qa{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:14px}
+  .qa button{display:flex;align-items:center;gap:11px;text-align:left;background:var(--surface);
+    border:1px solid var(--line);border-radius:15px;padding:14px;font:inherit;color:var(--ink);
+    cursor:pointer;box-shadow:var(--shadow-sm);transition:transform .12s ease}
+  .qa button:active{transform:scale(.97)}
+  .qa .qi{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;flex:0 0 auto;
+    background:linear-gradient(150deg,var(--aqua),var(--water-bright));color:#06343d;font-size:16px}
+  .qa .ql{font-size:13.5px;font-weight:600;line-height:1.15}
+  .qa .qs{font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+
+  /* ---------- news ---------- */
+  .post{padding:16px;margin-bottom:12px}
+  .post-top{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+  .ava{width:30px;height:30px;border-radius:9px;flex:0 0 auto;display:grid;place-items:center;
+    font-size:12px;font-weight:700;color:#fff;background:linear-gradient(150deg,var(--water),var(--water-deep))}
+  .post-meta b{font-size:13px;font-weight:600;display:block;line-height:1.2}
+  .post-meta span{font-size:11.5px;color:var(--ink-soft)}
+  .tag{margin-left:auto;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+    padding:4px 9px;border-radius:999px;background:var(--surface-2);color:var(--water);border:1px solid var(--line)}
+  .post h2{font-family:var(--display);font-weight:700;font-size:17px;letter-spacing:-.01em;margin-bottom:6px;line-height:1.2}
+  .post p{font-size:13.5px;color:#33474c;line-height:1.5}
+  .post-foot{display:flex;gap:16px;margin-top:12px;font-size:12.5px;color:var(--ink-soft)}
+  .post-foot span{display:inline-flex;align-items:center;gap:5px}
+
+  /* ---------- Einsatz ---------- */
+  .einsatz-hero{padding:18px;position:relative;overflow:hidden;color:#fff;
+    background:linear-gradient(155deg,#13413f,#0f86a0);border-radius:20px;box-shadow:var(--shadow)}
+  .einsatz-hero .ek{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+  .einsatz-hero h2{font-family:var(--display);font-weight:700;font-size:20px;margin:6px 0 10px;line-height:1.15}
+  .einsatz-when{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .when-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);
+    padding:7px 11px;border-radius:10px;font-size:12.5px;font-weight:500}
+  .needs{font-size:12.5px;opacity:.92;margin-bottom:14px;line-height:1.45}
+  .needs b{font-weight:700}
+  .rsvp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .rsvp button{font:inherit;font-weight:700;font-size:14px;border-radius:13px;padding:14px;cursor:pointer;
+    border:1.5px solid rgba(255,255,255,.5);background:transparent;color:#fff;transition:.18s}
+  .rsvp button .c{font-size:16px;margin-right:6px}
+  .rsvp button.in.active{background:#fff;color:#0f6175;border-color:#fff}
+  .rsvp button.out.active{background:rgba(0,0,0,.22);border-color:rgba(255,255,255,.25)}
+
+  .attend{padding:16px;margin-top:12px}
+  .attend-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:13px}
+  .attend-head h3{font-size:14px;font-weight:600}
+  .attend-head .cnt{font-size:12.5px;color:var(--good);font-weight:700}
+  .people{display:flex;flex-wrap:wrap;gap:8px}
+  .person{display:flex;align-items:center;gap:7px;background:var(--surface-2);border:1px solid var(--line);
+    border-radius:999px;padding:5px 12px 5px 5px;font-size:12.5px;font-weight:500}
+  .person .pa{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;
+    font-weight:700;color:#fff}
+  .person.you{background:#0f86a0;color:#fff;border-color:#0f86a0}
+  .person.you .pa{background:rgba(255,255,255,.25)}
+
+  .stat{display:flex;align-items:center;gap:14px;padding:16px;margin-top:12px}
+  .stat .medal{width:46px;height:46px;border-radius:14px;flex:0 0 auto;display:grid;place-items:center;font-size:22px;
+    background:linear-gradient(150deg,var(--sun),var(--sun-deep))}
+  .stat-num{font-family:var(--display);font-weight:800;font-size:26px;line-height:1;font-feature-settings:"tnum" 1}
+  .stat-lab{font-size:12.5px;color:var(--ink-soft);margin-top:3px}
+  .stat .mini{margin-left:auto;text-align:right;font-size:11.5px;color:var(--ink-soft);line-height:1.5}
+  .stat .mini b{color:var(--ink);font-size:13px}
+
+  /* ---------- Mehr ---------- */
+  .list{overflow:hidden}
+  .row{display:flex;align-items:center;gap:13px;padding:15px 16px;border-bottom:1px solid var(--line);
+    cursor:pointer;background:var(--surface);font:inherit;color:var(--ink);width:100%;text-align:left}
+  .row:last-child{border-bottom:0}
+  .row:active{background:var(--surface-2)}
+  .row .ri{width:34px;height:34px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center;font-size:16px;
+    background:var(--surface-2);color:var(--water)}
+  .row .rt b{font-size:14px;font-weight:600;display:block}
+  .row .rt span{font-size:12px;color:var(--ink-soft)}
+  .row .chev{margin-left:auto;color:#b9ccce;font-size:18px}
+  .price-grid{padding:4px 0}
+  .price-row{display:flex;justify-content:space-between;padding:11px 16px;font-size:13.5px;border-bottom:1px solid var(--line)}
+  .price-row:last-child{border-bottom:0}
+  .price-row b{font-weight:700}
+  .cta-donate{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;margin-top:14px;
+    background:linear-gradient(150deg,var(--sun),var(--sun-deep));color:#fff;border:0;border-radius:15px;
+    padding:16px;font:inherit;font-weight:700;font-size:14.5px;cursor:pointer;box-shadow:var(--shadow-sm)}
+  .cta-donate:active{transform:scale(.98)}
+
+  .made{ text-align:center;font-size:11.5px;color:var(--ink-soft);margin:22px 0 4px;line-height:1.6}
+  .made b{color:var(--water-deep);font-weight:700}
+  .made a{color:var(--water-deep);font-weight:700;text-decoration:none;border-bottom:1px solid rgba(15,134,160,.45)}
+
+  /* ---------- bottom tabs ---------- */
+  .tabs{
+    position:absolute;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);
+    background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border-top:1px solid var(--line);
+    padding:8px 6px calc(env(safe-area-inset-bottom,0px) + 8px);z-index:10;
+  }
+  .tab{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;font:inherit;
+    color:var(--ink-soft);cursor:pointer;padding:5px 4px;border-radius:12px;transition:color .15s}
+  .tab .ti{font-size:20px;line-height:1}
+  .tab .tl{font-size:10.5px;font-weight:600;letter-spacing:.01em}
+  .tab.active{color:var(--water-deep);background:rgba(15,134,160,.12)}
+  .tab.active .ti{transform:translateY(-1px)}
+
+  .toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);
+    background:#0c2a30;color:#fff;padding:11px 18px;border-radius:12px;font-size:13px;font-weight:500;
+    box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.28s;z-index:20;white-space:nowrap;max-width:90%}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (prefers-reduced-motion:reduce){
+    .hero .caustics,.gauge .wave{animation:none}
+    .view{animation:none}
+  }
+  /* ---------- sub-view header ---------- */
+  .subhead{display:flex;align-items:center;margin:6px 2px 2px}
+  .back{display:inline-flex;align-items:center;gap:4px;background:none;border:0;font:inherit;
+    color:var(--water);font-weight:600;font-size:14px;cursor:pointer;padding:6px 2px}
+  .back .cv{font-size:19px;line-height:1}
+
+  /* ---------- Termine ---------- */
+  .ev{display:flex;gap:14px;padding:14px;margin-bottom:12px}
+  .ev .date{flex:0 0 auto;width:54px;border-radius:13px;text-align:center;padding:9px 0;
+    background:var(--surface-2);border:1px solid var(--line);align-self:flex-start}
+  .ev .date .d{font-family:var(--display);font-weight:800;font-size:22px;line-height:1;color:var(--water-deep)}
+  .ev .date .m{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-top:3px}
+  .ev .info{flex:1;min-width:0}
+  .ev .info h3{font-family:var(--display);font-weight:700;font-size:16px;letter-spacing:-.01em;line-height:1.2;margin-bottom:5px}
+  .ev .info .when{font-size:12.5px;color:var(--ink-soft);display:flex;flex-wrap:wrap;gap:4px 12px;margin-bottom:7px}
+  .ev .info p{font-size:13px;color:#33474c;line-height:1.45}
+  .ev.feat{color:#fff;background:linear-gradient(155deg,#0b5563,#0f86a0);border:0;box-shadow:var(--shadow)}
+  .ev.feat .date{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.2)}
+  .ev.feat .date .d{color:#fff}.ev.feat .date .m{color:rgba(255,255,255,.85)}
+  .ev.feat .info .when{color:rgba(255,255,255,.85)}.ev.feat .info p{color:rgba(255,255,255,.92)}
+  .ev-cta{display:inline-flex;align-items:center;margin-top:11px;background:#fff;color:#0f6175;
+    border:0;border-radius:11px;padding:9px 14px;font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+  .ev-cta.on{background:rgba(255,255,255,.18);color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.6)}
+  .ev-count{font-size:12px;margin-left:9px;opacity:.9;font-weight:500}
+
+  /* ---------- Kummerkasten ---------- */
+  .kintro{padding:16px;display:flex;gap:13px;align-items:flex-start}
+  .kintro .kic{width:40px;height:40px;border-radius:12px;flex:0 0 auto;display:grid;place-items:center;font-size:20px;
+    background:linear-gradient(150deg,var(--aqua),var(--water-bright))}
+  .kintro p{font-size:13px;color:#33474c;line-height:1.5}
+  .kintro p b{color:var(--ink)}
+  .klabel{font-size:12.5px;font-weight:600;margin:16px 2px 9px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:9px 14px;
+    font:inherit;font-size:13px;font-weight:500;cursor:pointer;color:var(--ink-soft);transition:.15s}
+  .chip.on{background:var(--water);border-color:var(--water);color:#fff}
+  .kbox{width:100%;margin-top:12px;border:1px solid var(--line);border-radius:15px;background:var(--surface);
+    padding:14px;font:inherit;font-size:14px;color:var(--ink);resize:none;min-height:104px;line-height:1.45}
+  .kbox::placeholder{color:#9fb4b8}
+  .kbox:focus{outline:none;border-color:var(--water);box-shadow:0 0 0 3px rgba(15,134,160,.12)}
+  .ksend{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px;
+    background:var(--water-deep);color:#fff;border:0;border-radius:14px;padding:15px;font:inherit;font-weight:700;
+    font-size:14.5px;cursor:pointer;transition:.15s}
+  .ksend:disabled{opacity:.45;cursor:not-allowed}
+  .ksend:not(:disabled):active{transform:scale(.98)}
+  .kanon{display:flex;align-items:center;gap:7px;justify-content:center;font-size:11.5px;color:var(--ink-soft);margin-top:10px}
+  .kitem{display:flex;gap:11px;padding:13px 16px;border-bottom:1px solid var(--line);align-items:flex-start}
+  .kitem:last-child{border-bottom:0}
+  .kitem .ks{flex:0 0 auto;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:12px;margin-top:1px}
+  .ks.done{background:rgba(31,158,114,.14);color:var(--good)}
+  .ks.open{background:rgba(244,162,76,.18);color:var(--sun-deep)}
+  .kitem .kt{flex:1;min-width:0}
+  .kitem .kt p{font-size:13px;color:var(--ink);line-height:1.4}
+  .kitem .kt span{font-size:11.5px;color:var(--ink-soft);display:block;margin-top:3px}
+  .kitem.fresh{animation:pop .4s ease both}
+  @keyframes pop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+  :focus-visible{outline:3px solid var(--sun);outline-offset:2px;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="phone" role="application" aria-label="Freibad Nordrach App-Demo">
+
+  <header class="appbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <div>
+        <div class="brand-name">Freibad Nordrach</div>
+        <div class="brand-sub">Mitglieder-App</div>
+      </div>
+    </div>
+    <div class="status-pill"><span class="dot"></span> Heute geöffnet</div>
+  </header>
+
+  <div class="demo-banner" id="demoBanner">
+    <div><b>Demo-Vorschau</b> · alle Zahlen sind Beispieldaten</div>
+    <button onclick="document.getElementById('demoBanner').style.display='none'" aria-label="Hinweis schließen">×</button>
+  </div>
+
+  <main class="screen" id="screen">
+
+    <!-- ============ HEUTE ============ -->
+    <section class="view active" id="view-heute">
+      <div class="hero">
+        <div class="caustics" aria-hidden="true"></div>
+        <div class="hero-top">
+          <span class="hero-label">Wassertemperatur</span>
+          <span class="hero-date" id="today">heute</span>
+        </div>
+        <div class="hero-temps">
+          <div class="wt"><div class="wt-l">Schwimmerbecken</div><div class="wt-v">22,4<span>°</span></div></div>
+          <div class="wt-div"></div>
+          <div class="wt"><div class="wt-l">Kinderbecken</div><div class="wt-v">24,8<span>°</span></div></div>
+        </div>
+        <div class="hero-meta">
+          <div class="hero-chip"><span class="ic">☀️</span> Luft 26°, sonnig</div>
+          <div class="hero-chip"><span class="ic">🕕</span> 6–22 Uhr</div>
+          <div class="hero-chip"><span class="ic">🛝</span> Rutsche 10–19 Uhr</div>
+        </div>
+      </div>
+
+      <div class="eyebrow">Gerade im Bad</div>
+      <div class="card occ">
+        <div class="gauge"><div class="fill" id="gaugeFill" style="height:0"><div class="wave"></div></div></div>
+        <div class="occ-body">
+          <div class="occ-head"><span class="occ-num" id="occNum">0</span><span class="occ-unit">Personen</span></div>
+          <div class="occ-label">von 1.500 Mitgliedern</div>
+          <span class="occ-tag" id="occTag">entspannt – gute Zeit zum Kommen</span>
+        </div>
+      </div>
+
+      <div class="card peak" style="margin-top:12px">
+        <h3>Stoßzeiten heute</h3>
+        <div class="hint">Wann am meisten los ist</div>
+        <div class="bars" id="bars" aria-hidden="true"></div>
+        <div class="axis"><span>8</span><span>11</span><span>14</span><span>17</span><span>20</span></div>
+      </div>
+
+      <div class="qa">
+        <button onclick="toast('Öffnet die JustIN-App zum Türöffnen')">
+          <span class="qi">🔓</span>
+          <span><span class="ql">Tür öffnen</span><span class="qs">über JustIN-App</span></span>
+        </button>
+        <button onclick="go('kummer')">
+          <span class="qi">💬</span>
+          <span><span class="ql">Kummerkasten</span><span class="qs">anonym melden</span></span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============ NEWS ============ -->
+    <section class="view" id="view-news">
+      <div class="eyebrow">Neuigkeiten vom Vorstand</div>
+
+      <article class="card post">
+        <div class="post-top">
+          <div class="ava">MH</div>
+          <div class="post-meta"><b>Manuel · Vorstand</b><span>vor 2 Tagen</span></div>
+          <span class="tag">Highlight</span>
+        </div>
+        <h2>Unsere neue Rutsche ist da! 🎉</h2>
+        <p>Pünktlich zur Saison steht sie: die neue Großrutsche am Nichtschwimmerbecken. Die offizielle Einweihung feiern wir gemeinsam – Termin folgt in Kürze hier in der App. Ein riesiges Dankeschön an alle, die mit angepackt haben!</p>
+        <div class="post-foot"><span>👍 48</span><span>💬 12 Kommentare</span></div>
+      </article>
+
+      <article class="card post">
+        <div class="post-top">
+          <div class="ava">SK</div>
+          <div class="post-meta"><b>Sabine · Schriftführung</b><span>vor 5 Tagen</span></div>
+          <span class="tag">Hinweis</span>
+        </div>
+        <h2>Samstags Vormittag Reinigung</h2>
+        <p>Zur Erinnerung: Samstags von 8 bis 11 Uhr bleibt das Becken für die Grundreinigung geschlossen. Ab 11 Uhr seid ihr wie gewohnt herzlich willkommen.</p>
+        <div class="post-foot"><span>👍 21</span><span>💬 3 Kommentare</span></div>
+      </article>
+
+      <article class="card post">
+        <div class="post-top">
+          <div class="ava">MH</div>
+          <div class="post-meta"><b>Manuel · Vorstand</b><span>vor 1 Woche</span></div>
+          <span class="tag">Wetter</span>
+        </div>
+        <h2>Gewitterwarnung – heute früher Schluss</h2>
+        <p>Für den späten Nachmittag ist ein kräftiges Gewitter angekündigt. Wir schließen heute voraussichtlich um 17 Uhr. Aktueller Stand immer hier oben in der App.</p>
+        <div class="post-foot"><span>👍 9</span><span>💬 1 Kommentar</span></div>
+      </article>
+    </section>
+
+    <!-- ============ TERMINE ============ -->
+    <section class="view" id="view-termine">
+      <div class="eyebrow">Demnächst im Freibad</div>
+
+      <div class="ev feat">
+        <div class="date"><div class="d">19</div><div class="m">Jul</div></div>
+        <div class="info">
+          <h3>Sommerfest &amp; Rutschen-Einweihung</h3>
+          <div class="when"><span>🕓 ab 16:00 Uhr</span><span>🎶 Live-Musik</span><span>🍔 Grill &amp; Kiosk</span></div>
+          <p>Wir weihen die neue Rutsche ein! Mit Vorführung, Verlosung und gemütlichem Ausklang. Bringt Familie &amp; Freunde mit.</p>
+          <button class="ev-cta" id="festBtn" onclick="toggleFest()">★ Ich komme<span class="ev-count" id="festCount">· 64 dabei</span></button>
+        </div>
+      </div>
+
+      <div class="eyebrow">Weitere Termine</div>
+
+      <div class="card ev">
+        <div class="date"><div class="d">26</div><div class="m">Jun</div></div>
+        <div class="info">
+          <h3>Aqua-Fitness am Abend</h3>
+          <div class="when"><span>🕕 18:30–19:15 Uhr</span><span>🔁 wöchentlich</span></div>
+          <p>Bewegung im Wasser für alle Level – kostenlos für Mitglieder. Treffpunkt am Schwimmerbecken.</p>
+        </div>
+      </div>
+
+      <div class="card ev">
+        <div class="date"><div class="d">06</div><div class="m">Jul</div></div>
+        <div class="info">
+          <h3>Anfänger-Schwimmkurs für Kinder</h3>
+          <div class="when"><span>🕙 10:00–11:00 Uhr</span><span>👤 5–8 Jahre</span></div>
+          <p>Vierwöchiger Kurs mit unseren Übungsleitern. Anmeldung über den Vorstand, Plätze begrenzt.</p>
+        </div>
+      </div>
+
+      <div class="card ev">
+        <div class="date"><div class="d">13</div><div class="m">Sep</div></div>
+        <div class="info">
+          <h3>Saison-Abschluss &amp; Helferfest</h3>
+          <div class="when"><span>🕕 ab 17:00 Uhr</span><span>🙌 für alle Helfer</span></div>
+          <p>Zum Saisonende sagen wir Danke – mit Vesper und gemütlichem Beisammensein für alle, die mitgeholfen haben.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ EINSATZ ============ -->
+    <section class="view" id="view-einsatz">
+      <div class="eyebrow">Aktueller Arbeitseinsatz</div>
+
+      <div class="einsatz-hero">
+        <div class="ek">Einsatz · Hilfe gesucht</div>
+        <h2>Frühjahrsputz &amp; Becken streichen</h2>
+        <div class="einsatz-when">
+          <span class="when-chip">📅 Sa, 5. Juli</span>
+          <span class="when-chip">🕘 9:00–13:00 Uhr</span>
+          <span class="when-chip">📍 Beckenbereich</span>
+        </div>
+        <div class="needs">Wir brauchen <b>2 fürs Streichen</b>, <b>4 für den Putz</b> und <b>2 am Kiosk</b>. Werkzeug ist da – einfach kommen!</div>
+        <div class="rsvp">
+          <button class="in" id="btnIn" onclick="setRsvp(true)"><span class="c">✓</span>Ich bin dabei</button>
+          <button class="out" id="btnOut" onclick="setRsvp(false)"><span class="c">✕</span>Kann nicht</button>
+        </div>
+      </div>
+
+      <div class="card attend">
+        <div class="attend-head">
+          <h3>Schon dabei</h3>
+          <span class="cnt" id="attendCnt">7 Helfer</span>
+        </div>
+        <div class="people" id="people"></div>
+      </div>
+
+      <div class="card stat">
+        <div class="medal" aria-hidden="true">🏅</div>
+        <div>
+          <div class="stat-num" id="myCount">4×</div>
+          <div class="stat-lab">deine Einsätze 2026</div>
+        </div>
+        <div class="mini">Verein gesamt<br><b>63 Einsätze</b> dieses Jahr</div>
+      </div>
+
+      <div class="eyebrow">Deine letzten Einsätze</div>
+      <div class="card list">
+        <div class="row" style="cursor:default"><span class="ri">🧹</span><span class="rt"><b>Saison-Aufbau</b><span>12. Mai · 4 Std</span></span></div>
+        <div class="row" style="cursor:default"><span class="ri">🌿</span><span class="rt"><b>Grünpflege Liegewiese</b><span>28. April · 3 Std</span></span></div>
+        <div class="row" style="cursor:default"><span class="ri">🔧</span><span class="rt"><b>Technik-Check Pumpe</b><span>14. April · 2 Std</span></span></div>
+      </div>
+    </section>
+
+    <!-- ============ MEHR ============ -->
+    <section class="view" id="view-mehr">
+      <div class="eyebrow">Mitgliedsbeiträge / Jahr</div>
+      <div class="card price-grid">
+        <div class="price-row"><span>Familie</span><b>130 €</b></div>
+        <div class="price-row"><span>Einzelperson</span><b>65 €</b></div>
+        <div class="price-row"><span>Kind / Jugend</span><b>30 €</b></div>
+        <div class="price-row"><span>Fördermitglied</span><b>ab 30 €</b></div>
+      </div>
+
+      <div class="eyebrow">Service</div>
+      <div class="card list">
+        <button class="row" onclick="go('kummer')"><span class="ri">💬</span><span class="rt"><b>Kummerkasten</b><span>anonym melden &amp; vorschlagen</span></span><span class="chev">›</span></button>
+        <button class="row" onclick="toast('Öffnet die JustIN-App zum Türöffnen')"><span class="ri">🔓</span><span class="rt"><b>Tür öffnen</b><span>Zugang per JustIN-App</span></span><span class="chev">›</span></button>
+        <button class="row" onclick="toast('Öffnungszeiten: täglich 6–22 Uhr')"><span class="ri">🕕</span><span class="rt"><b>Öffnungszeiten</b><span>täglich 6–22 Uhr · Sa ab 11</span></span><span class="chev">›</span></button>
+        <button class="row" onclick="toast('E-Mail an den Vorstand')"><span class="ri">✉️</span><span class="rt"><b>Vorstand kontaktieren</b><span>Frage oder Anliegen</span></span><span class="chev">›</span></button>
+        <button class="row" onclick="toast('Mitgliedsdaten verwalten')"><span class="ri">👤</span><span class="rt"><b>Meine Mitgliedschaft</b><span>Daten &amp; SEPA</span></span><span class="chev">›</span></button>
+      </div>
+
+      <button class="cta-donate" onclick="toast('Vielen Dank! Öffnet die Spendenseite')">❤️ Förderverein unterstützen</button>
+
+      <div class="made">Beispiel-App für den Förderverein Schwimmbad Nordrach e.V.<br>Eine Idee von <a href="https://www.veradex.de/team" target="_blank" rel="noopener">Veradex</a> →</div>
+    </section>
+
+    <!-- ============ KUMMERKASTEN ============ -->
+    <section class="view" id="view-kummer">
+      <div class="subhead"><button class="back" onclick="go('mehr')"><span class="cv">‹</span> Zurück</button></div>
+
+      <div class="card kintro">
+        <div class="kic" aria-hidden="true">💬</div>
+        <p><b>Kummerkasten &amp; Ideen.</b> Etwas kaputt, eine Anregung oder ein Lob? Schreib es uns – komplett <b>anonym</b>. Niemand sieht, von wem die Nachricht kommt.</p>
+      </div>
+
+      <div class="klabel">Worum geht's?</div>
+      <div class="chips" id="kchips">
+        <button class="chip on" onclick="pickChip(this)">🧼 Sauberkeit</button>
+        <button class="chip" onclick="pickChip(this)">🔧 Technik</button>
+        <button class="chip" onclick="pickChip(this)">🏊 Becken</button>
+        <button class="chip" onclick="pickChip(this)">🥨 Kiosk</button>
+        <button class="chip" onclick="pickChip(this)">💡 Idee</button>
+        <button class="chip" onclick="pickChip(this)">⋯ Sonstiges</button>
+      </div>
+
+      <textarea class="kbox" id="kbox" placeholder="z. B. Der Wasserhahn im Damen-WC tropft …" oninput="checkSend()"></textarea>
+      <button class="ksend" id="ksend" disabled onclick="sendKummer()">✈️ Anonym an den Vorstand senden</button>
+      <div class="kanon">🔒 Anonym – ohne Name, ohne Mitgliedsnummer</div>
+
+      <div class="eyebrow">Zuletzt gemeldet</div>
+      <div class="card list" id="klist">
+        <div class="kitem"><span class="ks done">✓</span><div class="kt"><p>Seifenspender im Herren-WC war leer</p><span>erledigt · vor 3 Tagen</span></div></div>
+        <div class="kitem"><span class="ks done">✓</span><div class="kt"><p>Liege bei Becken 2 wackelt</p><span>erledigt · vor 6 Tagen</span></div></div>
+        <div class="kitem"><span class="ks open">●</span><div class="kt"><p>Idee: Sonnensegel über der Liegewiese</p><span>wird geprüft · vor 1 Woche</span></div></div>
+      </div>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="heute" onclick="go('heute')"><span class="ti">💧</span><span class="tl">Heute</span></button>
+    <button class="tab" data-tab="news" onclick="go('news')"><span class="ti">📣</span><span class="tl">News</span></button>
+    <button class="tab" data-tab="termine" onclick="go('termine')"><span class="ti">📅</span><span class="tl">Termine</span></button>
+    <button class="tab" data-tab="einsatz" onclick="go('einsatz')"><span class="ti">🛠️</span><span class="tl">Einsatz</span></button>
+    <button class="tab" data-tab="mehr" onclick="go('mehr')"><span class="ti">⋯</span><span class="tl">Mehr</span></button>
+  </nav>
+</div>
+
+<script>
+  // date
+  document.getElementById('today').textContent =
+    new Date().toLocaleDateString('de-DE',{weekday:'short',day:'numeric',month:'long'});
+
+  // tab navigation
+  function go(name){
+    var v=document.getElementById('view-'+name); if(!v) return;
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    v.classList.add('active');
+    if(['heute','news','termine','einsatz','mehr'].indexOf(name)>-1){
+      document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===name));
+    }
+    document.getElementById('screen').scrollTo({top:0,behavior:'smooth'});
+  }
+
+  // occupancy gauge + live-ish flutter
+  let occ = 87;
+  function renderOcc(){
+    document.getElementById('occNum').textContent = occ;
+    const pct = Math.min(100, Math.round(occ/250*100)); // Füllstand = Auslastung der Tageskapazität (nicht der 1500 Mitglieder)
+    document.getElementById('gaugeFill').style.height = Math.max(8,pct)+'%';
+    const tag = document.getElementById('occTag');
+    if(occ<120){tag.textContent='entspannt – gute Zeit zum Kommen';tag.style.background='rgba(31,158,114,.12)';tag.style.color='var(--good)';}
+    else if(occ<260){tag.textContent='gut besucht';tag.style.background='rgba(244,162,76,.15)';tag.style.color='var(--sun-deep)';}
+    else {tag.textContent='ziemlich voll';tag.style.background='rgba(222,126,38,.15)';tag.style.color='var(--sun-deep)';}
+  }
+  setTimeout(renderOcc,250);
+  if(!window.matchMedia('(prefers-reduced-motion:reduce)').matches){
+    setInterval(()=>{ occ += Math.round((Math.random()-0.45)*5); occ=Math.max(54,Math.min(140,occ)); renderOcc(); },3200);
+  }
+
+  // peak-hours bars (8..21h), highlight current hour
+  (function(){
+    const shape=[10,16,22,30,40,52,66,78,88,96,90,80,72,64], box=document.getElementById('bars');
+    const hour=new Date().getHours(); const nowIdx=Math.max(0,Math.min(shape.length-1,hour-8));
+    shape.forEach((h,i)=>{const b=document.createElement('div');b.className='b'+(i===nowIdx?' now':'');b.style.height=h+'%';box.appendChild(b);});
+  })();
+
+  // Einsatz RSVP
+  const people=[['LK','#0f86a0'],['TM','#13413f'],['AB','#1aa6c4'],['Rs','#0b5563'],['JW','#2a8d7a'],['Pe','#0f86a0'],['MH','#13413f']];
+  let joined=false;
+  function renderPeople(){
+    const box=document.getElementById('people'); box.innerHTML='';
+    if(joined){const y=document.createElement('div');y.className='person you';y.innerHTML='<span class="pa">DU</span>Du';box.appendChild(y);}
+    people.forEach(([i,c])=>{const p=document.createElement('div');p.className='person';
+      p.innerHTML='<span class="pa" style="background:'+c+'">'+i+'</span>'+i;box.appendChild(p);});
+    const n=people.length+(joined?1:0);
+    document.getElementById('attendCnt').textContent=n+' Helfer';
+    document.getElementById('myCount').textContent=(joined?5:4)+'×';
+  }
+  function setRsvp(inn){
+    joined=inn;
+    document.getElementById('btnIn').classList.toggle('active',inn);
+    document.getElementById('btnOut').classList.toggle('active',!inn);
+    renderPeople();
+    toast(inn?'Top! Du bist eingetragen. 🙌':'Schade – vielleicht beim nächsten Mal.');
+  }
+  renderPeople();
+
+  // events RSVP (Termine)
+  var festOn=false;
+  function toggleFest(){
+    festOn=!festOn;
+    document.getElementById('festBtn').classList.toggle('on',festOn);
+    document.getElementById('festCount').textContent = festOn?'· 65 dabei':'· 64 dabei';
+    toast(festOn?'Klasse, wir sehen uns! 🎉':'Abgemeldet.');
+  }
+
+  // Kummerkasten
+  function pickChip(el){
+    document.querySelectorAll('#kchips .chip').forEach(c=>c.classList.remove('on'));
+    el.classList.add('on');
+  }
+  function checkSend(){
+    document.getElementById('ksend').disabled = document.getElementById('kbox').value.trim().length<3;
+  }
+  function sendKummer(){
+    var box=document.getElementById('kbox'); var txt=box.value.trim().replace(/[<>]/g,''); if(txt.length<3) return;
+    var cat=document.querySelector('#kchips .chip.on'); var label=cat?cat.textContent.trim():'Hinweis';
+    var list=document.getElementById('klist');
+    var item=document.createElement('div'); item.className='kitem fresh';
+    item.innerHTML='<span class="ks open">●</span><div class="kt"><p>'+txt+'</p><span>'+label+' · gerade eben · in Prüfung</span></div>';
+    list.insertBefore(item,list.firstChild);
+    box.value=''; document.getElementById('ksend').disabled=true;
+    toast('Danke! Anonym an den Vorstand gesendet. 🔒');
+  }
+
+  // toast
+  let tT;
+  function toast(msg){
+    const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+    clearTimeout(tT); tT=setTimeout(()=>t.classList.remove('show'),2200);
+  }
+</script>
+</body>
+</html>
