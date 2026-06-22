@@ -203,15 +203,18 @@
   .gear{padding:6px 0}
   .gear-row{display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--line)}
   .gear-row:last-child{border-bottom:0}
+  .gear-row.done{background:rgba(31,158,114,.05)}
   .gear-row .gi{width:30px;height:30px;border-radius:9px;flex:0 0 auto;display:grid;place-items:center;font-size:15px;background:var(--surface-2)}
-  .gear-row .gn{flex:1;font-size:14px;font-weight:500}
-  .gear-row.taken .gn{color:var(--ink-soft)}
-  .claim{flex:0 0 auto;background:var(--surface);border:1.5px solid var(--water);color:var(--water);
-    border-radius:10px;padding:8px 13px;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;transition:.15s;white-space:nowrap}
-  .claim:active{transform:scale(.96)}
-  .claim.mine{background:var(--water);border-color:var(--water);color:#fff}
-  .gear-row .by{flex:0 0 auto;font-size:12.5px;color:var(--ink-soft);font-weight:500;display:flex;align-items:center;gap:5px}
-  .gear-row .by::before{content:"✓";color:var(--good);font-weight:700}
+  .gear-row .gn{flex:1;min-width:0}
+  .gn-name{font-size:14px;font-weight:500;line-height:1.2}
+  .gn-sub{font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+  .gear-row.done .gn-sub{color:var(--good);font-weight:600}
+  .step{flex:0 0 auto;display:flex;align-items:center;border:1.5px solid var(--line);border-radius:11px;overflow:hidden}
+  .st{width:34px;height:34px;border:0;background:var(--surface);color:var(--water);font-size:19px;font-weight:700;cursor:pointer;line-height:1;display:grid;place-items:center}
+  .st:disabled{color:#cddde0;cursor:default}
+  .st:not(:disabled):active{background:var(--surface-2)}
+  .st-count{min-width:28px;text-align:center;font-size:14px;font-weight:700;font-feature-settings:"tnum" 1;color:var(--ink)}
+  .st-count.has{color:var(--water)}
 
   /* ---------- Mehr ---------- */
   .list{overflow:hidden}
@@ -491,26 +494,31 @@
       </div>
 
       <div class="eyebrow">Wer bringt was mit?</div>
-      <div class="card gear">
-        <div class="gear-row">
-          <span class="gi">🌿</span><span class="gn">Rasenmäher</span>
-          <button class="claim" onclick="claimGear(this)">Ich bring's mit</button>
+      <div class="card gear" id="gear">
+        <div class="gear-row" data-need="2" data-others="0">
+          <span class="gi">🌿</span>
+          <div class="gn"><div class="gn-name">Rasenmäher</div><div class="gn-sub"></div></div>
+          <div class="step"><button class="st minus" onclick="gearStep(this,-1)">−</button><span class="st-count">0</span><button class="st plus" onclick="gearStep(this,1)">+</button></div>
         </div>
-        <div class="gear-row taken">
-          <span class="gi">🪜</span><span class="gn">Leiter</span>
-          <span class="by">Andreas bringt's</span>
+        <div class="gear-row" data-need="2" data-others="1">
+          <span class="gi">🪜</span>
+          <div class="gn"><div class="gn-name">Leiter</div><div class="gn-sub"></div></div>
+          <div class="step"><button class="st minus" onclick="gearStep(this,-1)">−</button><span class="st-count">0</span><button class="st plus" onclick="gearStep(this,1)">+</button></div>
         </div>
-        <div class="gear-row">
-          <span class="gi">🛒</span><span class="gn">Schubkarre</span>
-          <button class="claim" onclick="claimGear(this)">Ich bring's mit</button>
+        <div class="gear-row" data-need="1" data-others="0">
+          <span class="gi">🛒</span>
+          <div class="gn"><div class="gn-name">Schubkarre</div><div class="gn-sub"></div></div>
+          <div class="step"><button class="st minus" onclick="gearStep(this,-1)">−</button><span class="st-count">0</span><button class="st plus" onclick="gearStep(this,1)">+</button></div>
         </div>
-        <div class="gear-row">
-          <span class="gi">✂️</span><span class="gn">Heckenschere</span>
-          <button class="claim" onclick="claimGear(this)">Ich bring's mit</button>
+        <div class="gear-row" data-need="1" data-others="0">
+          <span class="gi">✂️</span>
+          <div class="gn"><div class="gn-name">Heckenschere</div><div class="gn-sub"></div></div>
+          <div class="step"><button class="st minus" onclick="gearStep(this,-1)">−</button><span class="st-count">0</span><button class="st plus" onclick="gearStep(this,1)">+</button></div>
         </div>
-        <div class="gear-row taken">
-          <span class="gi">💦</span><span class="gn">Hochdruckreiniger</span>
-          <span class="by">Petra bringt's</span>
+        <div class="gear-row" data-need="1" data-others="1">
+          <span class="gi">💦</span>
+          <div class="gn"><div class="gn-name">Hochdruckreiniger</div><div class="gn-sub"></div></div>
+          <div class="step"><button class="st minus" onclick="gearStep(this,-1)">−</button><span class="st-count">0</span><button class="st plus" onclick="gearStep(this,1)">+</button></div>
         </div>
       </div>
 
@@ -695,12 +703,23 @@
     toast('Danke! Anonym an den Vorstand gesendet. 🔒');
   }
 
-  // Geräte mitbringen
-  function claimGear(btn){
-    var mine=btn.classList.toggle('mine');
-    btn.textContent = mine ? '✓ Bringst du mit' : "Ich bring's mit";
-    toast(mine ? 'Top, du bringst es mit! 🙌' : 'Wieder freigegeben.');
+  // Geräte mitbringen (Mengen, mehrfaches Antippen möglich)
+  function gearRender(row){
+    var need=+row.dataset.need, others=+row.dataset.others, mine=+(row.dataset.mine||0);
+    var have=others+mine, done=have>=need;
+    var c=row.querySelector('.st-count'); c.textContent=mine; c.classList.toggle('has',mine>0);
+    row.querySelector('.minus').disabled=mine<=0;
+    row.classList.toggle('done',done);
+    row.querySelector('.gn-sub').textContent = done
+      ? '✓ komplett · '+have+' von '+need
+      : need+'× gebraucht · noch '+(need-have)+' gesucht';
   }
+  function gearStep(btn,delta){
+    var row=btn.closest('.gear-row'); var mine=+(row.dataset.mine||0)+delta;
+    if(mine<0) mine=0; row.dataset.mine=mine; gearRender(row);
+    if(delta>0) toast('Eingetragen – danke! 🙌');
+  }
+  document.querySelectorAll('#gear .gear-row').forEach(gearRender);
 
   // toast
   let tT;
